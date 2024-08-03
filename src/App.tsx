@@ -7,14 +7,19 @@ function App() {
     {
       question: "What is your name?",
       answer: "Jane Doe"
-    }, {
-      question: "One Plus One?",
-      answer: "2"
     }
   ])
   const [cardsCount, setCardsCount] = useState(0)
   const [allCardsDone, setAllCardsDone] = useState(false);
 
+  function addCard()
+  {
+    setCards([...cards, {question: "What is your name?", answer: "Jane Doe"}])
+  }
+  function removeCard()
+  {
+    setCards(cards.filter((card, index) => index !== cardsCount))
+  }
   function nextCard()
   {
     if(cardsCount === cards.length - 1){
