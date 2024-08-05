@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import Card from './components/Card'
+import React from 'react'
 
 function App() {
   const [cards, setCards] = useState([
@@ -12,14 +13,14 @@ function App() {
   const [cardsCount, setCardsCount] = useState(0)
   const [allCardsDone, setAllCardsDone] = useState(false);
 
-  function addCard()
-  {
-    setCards([...cards, {question: "What is your name?", answer: "Jane Doe"}])
-  }
-  function removeCard()
-  {
-    setCards(cards.filter((card, index) => index !== cardsCount))
-  }
+  // function addCard()
+  // {
+  //   setCards([...cards, {question: "What is your name?", answer: "Jane Doe"}])
+  // }
+  // function removeCard()
+  // {
+  //   setCards(cards.filter((card, index) => index !== cardsCount))
+  // }
   function nextCard()
   {
     if(cardsCount === cards.length - 1){
