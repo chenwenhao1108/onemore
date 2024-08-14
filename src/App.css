@@ -1,19 +1,23 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
+  height: 90vh;
+  width: 90vw;
+  margin: 0;
   padding: 2rem;
   text-align: center;
 }
 
 .card {
+  box-sizing: border-box;
+  position: absolute;
   padding: 2em;
   border: solid 1px white;
   border-radius: 10px;
-  width: 70vw;
-  height: 70vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
 }
 
 .card-question {
@@ -32,4 +36,61 @@
   display: flex;
   justify-content: space-around;
   height: 10%;
+}
+
+.card-page {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-card-notification {
+  height: 50px;
+  padding: 0;
+  margin: 0;
+  width: 70%;
+}
+
+.create-card-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.create-card-form hr {
+  margin: auto 0 ;
+}
+
+.form-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0);
+  border: none;
+  outline-style: none;
+  resize: none;
+  font-size: 1.5rem;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+.form-textarea::placeholder {
+  text-align: center;
+}
+
+.question-textarea {
+  height: 20%;
+}
+
+.answer-textarea {
+  height: 70%;
+  padding-top: 20px;
+}
+
+.card-btn {
+  background-color: rgba(0, 0, 0, 0);
+  height: fit-content;
+  border: 1px solid white;
 }

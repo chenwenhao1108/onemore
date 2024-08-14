@@ -1,6 +1,17 @@
 import React from "react";
 
-export default function Card(props: {question?: string, answer?: string, nextCard: () => void, recite: () => void, allCardsDone: boolean})
+
+interface CardProps {
+    question?: string, 
+    answer?: string, 
+    nextCard?: () => void, 
+    recite?: () => void, 
+    allCardsDone?: boolean,
+    noCard?: boolean,
+    addCard?: () => void,
+}
+
+export default function Card(props: CardProps)
 {
     const [displayAnswer, setDisplayAnswer] = React.useState(false);
     
@@ -10,6 +21,19 @@ export default function Card(props: {question?: string, answer?: string, nextCar
         // TODO: Caculate when is the next time showing this card
     }
 
+    if(props.noCard) {
+        return(
+            <div className="card">
+                <h5 className="card-question">No Card Yet</h5>
+                <p className="card-answer">You Can Create A New Card Here~</p>
+                {/* <textarea data-testid="question-textarea" className="card-question" placeholder="No Card Yet" />
+                <textarea data-testid="answer-textarea" className="card-answer" placeholder="You Can Create A New Card Here" /> */}
+                <div className="card-footer">
+                    <button className="btn btn-primary" onClick={props.addCard}>Create</button>
+                </div>
+            </div>
+        )
+    }
     // check if all cards are done
     if (props.allCardsDone) {
         return(
