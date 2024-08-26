@@ -134,7 +134,7 @@ function App() {
 
   return (
     <UserContext.Provider value={{user, setUser}}>
-      <RouterProvider router={router} basename="/onemore" />
+      <RouterProvider router={router} />
     </UserContext.Provider>
   )
 }
