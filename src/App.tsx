@@ -126,7 +126,7 @@ function App() {
         <AllcardsPage />
       </AllCardsContext.Provider>) : <Navigate to="/login" replace={true} />,
     },
-  ]);
+  ], { basename: '/onemore' });
 
   if (loading) {
     return <h1>Loading</h1>
@@ -134,7 +134,7 @@ function App() {
 
   return (
     <UserContext.Provider value={{user, setUser}}>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} basename="/onemore" />
     </UserContext.Provider>
   )
 }
