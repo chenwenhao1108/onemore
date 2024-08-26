@@ -1,35 +1,29 @@
-import React from "react";
-
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 interface CardProps {
     question?: string, 
-    answer?: string, 
+    answer?: string,
     nextCard?: () => void, 
     recite?: () => void, 
     allCardsDone?: boolean,
     noCard?: boolean,
-    addCard?: () => void,
+    handleClear?: () => void,
+    handleForget?: (correctTimes) => void,
 }
 
 export default function Card(props: CardProps)
 {
     const [displayAnswer, setDisplayAnswer] = React.useState(false);
-    
-    // Handle forget answer
-    function forgetAnswer()
-    {
-        // TODO: Caculate when is the next time showing this card
-    }
+    const [displayMisrememberedBtn, setDisplayMisremenberedBtn] = useState(false)
 
     if(props.noCard) {
         return(
             <div className="card">
                 <h5 className="card-question">No Card Yet</h5>
                 <p className="card-answer">You Can Create A New Card Here~</p>
-                {/* <textarea data-testid="question-textarea" className="card-question" placeholder="No Card Yet" />
-                <textarea data-testid="answer-textarea" className="card-answer" placeholder="You Can Create A New Card Here" /> */}
                 <div className="card-footer">
-                    <button className="btn btn-primary" onClick={props.addCard}>Create</button>
+                    <Link to="/create">Create</Link>
                 </div>
             </div>
         )
@@ -38,8 +32,8 @@ export default function Card(props: CardProps)
     if (props.allCardsDone) {
         return(
             <div className="card">
-                <h5 className="card-question">Congratulations!</h5>
-                <p className="card-answer">You have completed all the cards!</p>
+                <h5 className="card-question">Good for you!</h5>
+                <p className="card-answer">You have completed today's cards!</p>
                 <div className="card-footer">
                     <button className="btn btn-primary" onClick={props.recite}>Recite Again</button>
                 </div>
@@ -51,14 +45,49 @@ export default function Card(props: CardProps)
                 <h5 className="card-question">{props.question}</h5>
                 <p className="card-answer" style={{display: displayAnswer ? "block" : "none"}}>{props.answer}</p>
                 <div className="card-footer" onClick={() => setDisplayAnswer(!displayAnswer)}>
-                    <button data-testid="forget-button" className="btn btn-primary" style={{display: displayAnswer ? "none" : "block"}} onClick={forgetAnswer}>
-                        Forget
+                    <button 
+                        data-testid="forget-button" 
+                        className="btn btn-primary card-btn" 
+                        style={{display: displayAnswer ? "none" : "block"}} 
+                        onClick={() => props.handleForget(0)}>
+                            Forget
                     </button>
-                    <button data-testid="not-sure-button" className="btn btn-primary" style={{display: displayAnswer ? "none" : "block"}} onClick={forgetAnswer}>
-                        Not Sure
+                    <button 
+                        data-testid="not-sure-button" 
+                        className="btn btn-primary card-btn" 
+                        style={{display: displayAnswer ? "none" : "block"}} 
+                        onClick={() => {
+                            setDisplayMisremenberedBtn(true)
+                            props.handleForget(2)}}>
+                            Not Sure
                     </button>
-                    <button data-testid="clear-next-button" className="btn btn-primary" onClick={displayAnswer ? props.nextCard : () => {}}>
-                        {displayAnswer ? "Next" : "Clear"}
+                    <button 
+                        data-testid="clear-next-button" 
+                        className="btn btn-primary card-btn" 
+                        style={{display: displayAnswer ? "none" : "block"}} 
+                        onClick={() => setDisplayMisremenberedBtn(true)}>
+                            Clear
+                    </button>
+                    <button 
+                        data-testid="misremembered-button" 
+                        className="btn btn-primary card-btn" 
+                        style={{display: displayMisrememberedBtn ? "block" : "none" }} 
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setDisplayMisremenberedBtn(false)
+                            props.handleForget(0)}}>
+                            Misremembered
+                    </button>
+                    <button 
+                        data-testid="next-button" 
+                        className="btn btn-primary card-btn" 
+                        style={{display: displayAnswer ? "block" : "none"}} 
+                        onClick={() => {
+                            setDisplayMisremenberedBtn(false)
+                            props.handleClear()
+                            props.nextCard()
+                            }}>
+                            Next
                     </button>
                 </div>
            </div>

@@ -1,39 +1,21 @@
-import { useContext, useId, useState } from "react";
-import { CardsContext } from "../App";
+import { useId, useState } from "react";
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import styled from 'styled-components';
+import { addDoc, collection, doc, Timestamp } from "firebase/firestore";
+import { auth, db } from "../../firebase";
 
-const FormWrapper = styled.div`
-    position: relative;
-    height: 70vh;
-    width: 70%;
-    .form-enter {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    .form-enter-active {
-        transform: translateX(0);
-        opacity: 1;
-        transition: transform 300ms, opacity 300ms;
-    }
-    .form-exit {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    .form-exit-active {
-        transform: translateX(-100%);
-        opacity: 0;
-        transition: transform 300ms, opacity 300ms;
-    }
-`;
+import Navbar from "../components/Navbar";
+
 
 const Notification = styled.div<{success: boolean}>`
+  position: fixed;
+  left: 50%;
+  transform: translate(-50%, 0);
   margin-bottom: 20px;
   background-color: ${props => (props.success ? '#11999e' : '#f6416c')};
   color: white;
   padding: 10px;
   border-radius: 5px;
-  z-index: 1000;
   &.notification-enter {
     opacity: 0;
   }
@@ -85,11 +67,14 @@ const Form = ({question, answer, addCard, fillQuestion, fillAnswer, id}) => (
 export default function CreateCardPage() {
 
     const id = useId();
-    const { cards, setCards } = useContext(CardsContext);
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
     const [currentForm, setCurrentForm] = useState(0);
     const [notification, setNotification] = useState<{ message: string; success: boolean } | null>(null);
+
+    const userId = auth.currentUser.uid
+    const users = doc(db, "users", userId);
+    const cardsCollection = collection(users, "cards")
 
     function fillQuestion(event: React.SyntheticEvent<HTMLTextAreaElement>) {
         setQuestion(event.currentTarget.value);
@@ -99,17 +84,24 @@ export default function CreateCardPage() {
         setAnswer(event.currentTarget.value);
     }
 
-    function addCard(event: React.SyntheticEvent<HTMLFormElement>) {
+    async function addCard(event: React.SyntheticEvent<HTMLFormElement>) {
         event.preventDefault();
         if (!question || !answer) {
             setNotification({ message: 'Fields cannot be empty', success: false });
         } else {
-            setCards([...cards, 
+            const nextShowDate = new Date
+            nextShowDate.setHours(0, 0, 0, 0)
+            const nextShowDateTimestamp = Timestamp.fromDate(nextShowDate)
+            const newCard =
                 { 
                 question: question,
-                answer: answer
+                answer: answer,
+                timestamp: Timestamp.now(),
+                nextShow: nextShowDateTimestamp,
+                correctTimes: 0
                 }
-            ]);
+            await addDoc(cardsCollection, newCard);
+
             setNotification({ message: 'Form submitted successfully', success: true });
             setCurrentForm(prev => prev + 1);
             setQuestion("");
@@ -140,9 +132,10 @@ export default function CreateCardPage() {
     ];
     
     return (
-        <div className="card-page">
+        <>
+            <Navbar />
             <div className="create-card-notification">
-                <TransitionGroup>
+                <TransitionGroup component={null}>
                     {notification && (
                         <CSSTransition key="notification" timeout={2000} classNames="notification">
                             <Notification success={notification.success}>
@@ -152,14 +145,15 @@ export default function CreateCardPage() {
                     )}
                 </TransitionGroup>
             </div>
-            
-            <FormWrapper>
-                <TransitionGroup>
-                    <CSSTransition key={currentForm} timeout={300} classNames="form">
+
+            <div className="card-page">
+                <TransitionGroup component={null}>
+                    <CSSTransition key={currentForm} timeout={300} classNames="card">
                         {forms[currentForm % forms.length]}
                     </CSSTransition>
                 </TransitionGroup>
-            </FormWrapper>
-        </div>
+            </div>
+        </>
+        
     );
 }

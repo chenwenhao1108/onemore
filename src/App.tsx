@@ -1,16 +1,24 @@
-import { useState, createContext } from 'react'
+import { useState, createContext, useEffect } from 'react'
 import './App.css'
-// import Card from './components/Card'
-
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
+import { collection, doc, getDocs, query, Timestamp, where } from 'firebase/firestore'
+import { db } from '../firebase'
+import { auth } from '../firebase' 
+import { onAuthStateChanged } from 'firebase/auth'
 import HomePage from './pages/HomePage.tsx'
 import CardPage from './pages/CardPage.tsx'
 import NotFoundPage from './pages/NotFoundPage'
 import CreateCardPage from './pages/CreateCardPage'
+import AllcardsPage from './pages/AllcardsPage'
+import LoginPage from './pages/LoginPage.tsx'
+import RegisterPage from './pages/RegisterPage.tsx'
 
 export interface Card {
+    id: string,
     question: string,
-    answer: string
+    answer: string,
+    nextShow: Timestamp,
+    correctTimes: number
 }
 
 interface CardsContextType {
@@ -19,70 +27,115 @@ interface CardsContextType {
 }
 
 export const CardsContext = createContext<CardsContextType | undefined>(undefined)
+export const AllCardsContext = createContext(undefined)
+export const UserContext = createContext(null)
 function App() {
 
   const [cards, setCards] = useState<Card[]>([])
-  const [cardsCount, setCardsCount] = useState(0)
-  const [allCardsDone, setAllCardsDone] = useState(false);
+  const [allCards, setAllCards] = useState<Card[]>([])
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log("auth state changed")
+      setUser(currentUser)
+      if (currentUser) {
+        const today = new Date
+              today.setHours(0, 0, 0, 0)
+        const tomorrow = new Date(today)
+              tomorrow.setDate(today.getDate() + 1)
+  
+        const todayTimestamp = Timestamp.fromDate(today)
+  
+        const cardsCollection = 
+              collection(doc(db, "users", currentUser.uid as string), "cards")
+        const q = query(cardsCollection, where("nextShow", "<=", todayTimestamp))
+  
+        getDocs(q)
+        .then((snapshot) => {
+          const cardsArr = snapshot.docs.map((doc) => {
+            return {
+              id: doc.id,
+              question: doc.data().question,
+              answer: doc.data().answer,
+              nextShow: doc.data().nextShow,
+              correctTimes: doc.data().correctTimes
+            }
+          })
+          setCards(cardsArr)
+          console.log("cards setted")
+          setLoading(false)
+        })
+
+        getDocs(cardsCollection)
+          .then((allCardsSnapshot) => {
+            const cardsArr = allCardsSnapshot.docs.map((doc) => {
+              return {
+                id: doc.id,
+                question: doc.data().question,
+                answer: doc.data().answer,
+                nextShow: doc.data().nextShow,
+                correctTimes: doc.data().correctTimes
+              }
+            })
+            setAllCards(cardsArr)
+          })
+      } else {
+        console.log("have not log in")
+        setLoading(false)
+      }
+    })
+    return unsubscribe
+  }, [])
 
   const router = createBrowserRouter([
     {
+      path: "/login",
+      element: user ? <Navigate to="/" /> : <LoginPage />
+    },
+    {
+      path: "/register",
+      element: user ? <Navigate to="/" /> : <RegisterPage />
+    },
+    {
       path: '/',
-      element: <HomePage />,
+      element: user ? 
+      (<CardsContext.Provider value={{cards, setCards}}>
+        <HomePage />
+      </CardsContext.Provider>)
+         : <Navigate to="/login" />,
       errorElement: <NotFoundPage />,
     },
     {
       path: '/card',
-      element: <CardPage />
+      element: 
+      user ? (<CardsContext.Provider value={{ cards, setCards }}>
+        <CardPage />
+      </CardsContext.Provider>) : <Navigate to="/login" replace={true} />,
     },
     {
       path: '/create',
       element: 
-      (<CardsContext.Provider value={{ cards, setCards }}>
-        <CreateCardPage />
-      </CardsContext.Provider>),
-    }
+        user ? <CreateCardPage /> : <Navigate to="/login" replace={true} />
+    },
+    {
+      path: '/allcards',
+      element: 
+      user ? (<AllCardsContext.Provider value={{ allCards, setAllCards }}>
+        <AllcardsPage />
+      </AllCardsContext.Provider>) : <Navigate to="/login" replace={true} />,
+    },
   ]);
 
-// TODO: Add card and romove card
-
-//   function nextCard()
-//   {
-//     if(cardsCount === cards.length - 1){
-//       setAllCardsDone(true)
-//     } else {
-//       setCardsCount(cardsCount + 1)
-//     }
-//   }
-
-//   function recite()
-//   {
-//     setCardsCount(0)
-//     setAllCardsDone(false)
-//   }
-
-//   const cardElemnet = cards.length === 0 ?
-//     <Card 
-//       key={cardsCount} 
-//       noCard={true}
-//       addCard={() => {}}
-//     />
-//   : 
-//    <Card 
-//       key={cardsCount} 
-//       question={cards[cardsCount].question} 
-//       answer={cards[cardsCount].answer}
-//       nextCard={nextCard}
-//       allCardsDone={allCardsDone}
-//       recite={() => recite()}
-//       noCard={cards.length === 0}
-//       addCard={() => {}}
-//     />
+  if (loading) {
+    return <h1>Loading</h1>
+  }
 
   return (
-    <>
+    <UserContext.Provider value={{user, setUser}}>
       <RouterProvider router={router} />
-    </>
+    </UserContext.Provider>
   )
 }
 
