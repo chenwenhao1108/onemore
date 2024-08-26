@@ -34,7 +34,7 @@ describe('Card', () => {
             recite={() => {}}
             allCardsDone={true} />)
         
-        const question = screen.getByText(/Congratulations!/i)
+        const question = screen.getByText(/Good/i)
         const answer = screen.getByText(/completed/i)
         const buttons = screen.getAllByRole('button')
         expect(question).toBeInTheDocument
